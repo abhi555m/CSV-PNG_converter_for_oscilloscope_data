@@ -211,11 +211,11 @@ function createfromcsv($filepath, $input_height, $input_width, $overlay) {
 	
 	
 	$pngname = 'monoclecat-de_'.date(MdY).'_'.rand(100000000,999999999).'.png';
-	$errors &= imagepng($img,realpath($_SERVER["DOCUMENT_ROOT"]).'/uploads/'.$pngname,9);
+	$errors &= imagepng($img,realpath($_SERVER["DOCUMENT_ROOT"]).$pngname,9);
 	imagedestroy($img);
 	
 	if ($errors != false) {
-		return '/uploads/'.$pngname;
+		return $pngname;
 	}
 	else {
 		return FALSE;
