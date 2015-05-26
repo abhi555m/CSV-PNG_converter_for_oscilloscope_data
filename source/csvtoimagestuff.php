@@ -1,6 +1,6 @@
 <?php
 
-$csvuploaderror; $pngoutput;
+$csvuploaderror;
 
 /*
 ------------ FUNCTIONS ------------
@@ -11,9 +11,6 @@ function createfromcsv($filepath, $input_height, $input_width, $overlay) {
 	$csvcontent = file($filepath,FILE_SKIP_EMPTY_LINES | FILE_IGNORE_NEW_LINES);
 	$errors = true;
 	$num_rows = count($csvcontent) - 2;
-	$padding_top = 30; //padding in pixels on top of png
-	$padding_bot = 50; //padding in pixels on bottom of png
-	
 	if ($input_height == 0) {
 		$height = round(sqrt($num_rows)*10); //This calculation gives good results
 		if ($height < 500) {
@@ -31,6 +28,9 @@ function createfromcsv($filepath, $input_height, $input_width, $overlay) {
 		$width = $input_width;
 		$x_div = $width / $num_rows;
 	}
+	$textsize = round($height/25);
+	$padding_top = round($height/20); //padding in pixels on top of png
+	$padding_bot = round($height/10); //padding in pixels on bottom of png
 	
 	$max_nr_pixels = 12500000; //obtained through testing until memory error occured
 	if ($height*$width > $max_nr_pixels) {
@@ -162,7 +162,7 @@ function createfromcsv($filepath, $input_height, $input_width, $overlay) {
 	//Creating vertical X-axis lines
 	$max_x_value = max($values[0]);
 	$min_x_value = min($values[0]);
-	$x_diff = $max_x_value - $min_x_value;
+	$x_diff = abs($max_x_value - $min_x_value);
 	$delta_x = $x_diff / $width; //change of x from one pixelcolumn to the next
 	$possible = array(0.000000001,0.00000001,0.0000001,0.000001,0.00001,0.0001,0.001,0.01,0.1,1,10,100,1000);
 	$x_line_repeat = 100; //We want a vertical line every ~100px
@@ -197,13 +197,15 @@ function createfromcsv($filepath, $input_height, $input_width, $overlay) {
 	//Adding text
 	$coords = array();
 	$space = 20; //space in pixels between imagettftext()
+	$gap_to_bot = round(($padding_bot-$textsize)/2);
 	for ($col = 0; $col < $num_columns; $col++) {
 		//imagettftext($image,$size,$angle,$x,$y,$color,$fontfile,$text
 		if (empty($coords)) { // this is only the case for the X-axis data == $color_black
-			$coords = imagettftext($img,12,0,$space,$height-20,$colors[$col],realpath($_SERVER["DOCUMENT_ROOT"])."/oxygenmono.ttf",$identifiers[$col].'('.$x_line_div.' '.$units[$col].'/div)');
+			$coords = imagettftext($img,$textsize,0,$space,$height-$gap_to_bot,$colors[$col],
+									realpath($_SERVER["DOCUMENT_ROOT"])."/oxygenmono.ttf",$identifiers[$col].'('.$x_line_div.' '.$units[$col].'/div)');
 		}
 		else {
-			$coords = imagettftext($img,12,0,$coords[2]+$space,$height-20,$colors[$col],
+			$coords = imagettftext($img,$textsize,0,$coords[2]+$space,$height-$gap_to_bot,$colors[$col],
 									realpath($_SERVER["DOCUMENT_ROOT"])."/oxygenmono.ttf",$identifiers[$col].'('.$y_line_div.' '.$units[$col].'/div)');
 		}
 	}
@@ -310,19 +312,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 				
 				$result = createfromcsv($_FILES['filename']['tmp_name'], $height, $width, $overlay);
 				if ($result !== FALSE) {
-					$csvuploaderror = "Success!";
-					$pngoutput = '<p><a href="'.$result.'">Right-click -> "Save link as"</a></p>';
+					$csvuploaderror = 'Success! <a href="'.$result.'">Right-click -> "Save link as"</a>';
 				}
 				else {
 					$csvuploaderror = "Failed.";
-					$pngoutput = "";
 				}
 				
 				 
 
 			} 
 			catch (RuntimeException $e) {
-				$pngoutput = "";
 			    $csvuploaderror = $e->getMessage();
 			}
 	}
@@ -333,14 +332,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 */
 
 function csvfileupload() {
-	global $csvuploaderror, $pngoutput;
+	global $csvuploaderror;
 	echo '
+		<h3>'.$csvuploaderror.'</h3>
 		<form enctype="multipart/form-data" action="'.htmlspecialchars($_SERVER["PHP_SELF"]).'" method="POST">
 
 		    <p>Select .csv file to upload (1MB max file size): </p>			
 			<p><input name="filename" type="file" class="inp"></p>
 			<p>Height: <br>
-				<input type="radio" name="heightselect" value="default" checked> Find the best for me <br>
+				<input type="radio" name="heightselect" value="default" checked> Auto <br>
 				<input type="radio" name="heightselect" value="user"> Use this height: <input type="text" name="heightval" class="inp" size="5">
 			</p>
 			<p>Width: <br>
@@ -352,9 +352,7 @@ function csvfileupload() {
 				<input type="radio" name="plotselect" value="seperated"> Please seperate channels
 			</p>
 		    <input name="csvfileupload" type="submit" value="Upload and create" class="subm">
-		</form>
-		<p>'.$csvuploaderror.'</p>'
-		.$pngoutput;
+		</form>';
 }
 
 
