@@ -1,7 +1,7 @@
 # CSV to PNG converter for oscilloscope data
 A web-based csv-file to png-image converter, designed for oscilloscope data output.
 
-### The following is the content from the [project page on my homepage](http://www.monoclecat.de/tools/csv-to-png-converter.php) ###
+### The following is the content from the [project page on my homepage](http://www.monoclecat.de/?l=csv-to-png-converter) ###
 
 A while back I was trying to reverse-engineer a data protocol between two circuits in my Lexmark printer because I was trying to make the printer print with cheaper ink from other companies (which doesn't cost more per volume than blood, you know).
 My main problem was in saving the data I had captured: Making screenshots of the data was tedious, as I would have to make more than 10 screenshots of different portions of data and then stitch the shots back together in an image-editing program. It sucked. The only output possibility left (for the softare I had) was to output the data in a "comma seperated values" (.csv) format. But it was plain text, not a nice graph which could be easily read and analysed.
